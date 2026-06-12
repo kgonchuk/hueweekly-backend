@@ -1,19 +1,21 @@
-require('dotenv').config();
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
+import dotenv from "dotenv";
+import express from "express"; 
+import mongoose from "mongoose"; 
+import cors from "cors"; 
+import connectDB from "./db.js"; 
+import authRoute from "./routes/authRoute.js";
+
+dotenv.config();
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-// Підключення до MongoDB
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('MongoDB підключено!'))
-  .catch(err => console.error(err));
+connectDB();
+app.get('/test', (req, res) => res.json({ status: "Сервер працює" }));
 
-app.get('/', (req, res) => res.send('HueWeekly API працює'));
+app.use('/api/auth', authRoute);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Сервер запущено на порті ${PORT}`));
