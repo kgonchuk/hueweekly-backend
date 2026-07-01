@@ -11,11 +11,13 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 connectDB();
 app.get('/test', (req, res) => res.json({ status: "Сервер працює" }));
 
 app.use('/api/auth', authRoute);
+app.use("/api/posts", postRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Сервер запущено на порті ${PORT}`));

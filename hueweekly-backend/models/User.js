@@ -5,6 +5,10 @@ const UserSchema = new mongoose.Schema({
   displayname: { type: String, required: true },
   password: { type: String, required: true }, 
   googleId: { type: String },
+  avatarUrl: { 
+    type: String, 
+    default: null 
+  },
   token: { type: String, default: null },
   createdAt: { type: Date, default: Date.now }
 });
