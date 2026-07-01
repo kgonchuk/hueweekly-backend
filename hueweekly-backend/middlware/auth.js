@@ -21,7 +21,8 @@ export async function authenticate(req, res, next) {
   req.user = user; 
   next();
   } catch (err) {
-    return res.status(401).json({ message: "Invalid token" });
+   console.error("❌ ПОМИЛКА В МІДЛВАРІ АВТОРИЗАЦІЇ:", err);
+  res.status(401).json({ message: "Невалідний токен", error: err.message });
   }
 }
 export default authenticate;

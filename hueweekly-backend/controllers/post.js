@@ -1,35 +1,42 @@
+import mongoose from "mongoose";
 import Post from "../models/Post.js";
 
 export async function createPost(req, res) {
   try {
-   const { title, place, latitude, longitude, name } = req.body;
-    if (!req.file) {
-      return res.status(400).json({ message: "Файл не передано" });
+    if (!req.user) {
+        return res.status(401).json({ message: "Користувач не авторизований" });
     }
-
+    const { title, place, latitude, longitude } = req.body;
+    if (!req.file) {
+        return res.status(400).json({ message: "Фото не отримано від сховища Cloudinary" });
+    }
     const lat = parseFloat(latitude);
     const lon = parseFloat(longitude);
 
     if (isNaN(lat) || isNaN(lon)) {
       return res.status(400).json({ message: "Некоректні координати" });
     }
-    const imageUrl = req.file.path.replace(/\\/g, "/"); 
-    const post = new Post({ 
-      author: req.user.id, 
-      title, 
-      place, 
-      image: imageUrl,
+    const photoUrl = req.file.path; 
+    const userId = req.user._id || req.user.id;
+    const postData = {
+      title,
+      image: photoUrl, 
       location: {
-        name: name || "Невідома локація", 
+        name: place || "Невідома локація",
         latitude: lat,
-        longitude: lon
-      }
-    });
-
-    const savedPost = await post.save();
-    res.status(201).json(savedPost);
+        longitude: lon,
+      },
+      author: mongoose.Types.ObjectId.isValid(userId) 
+    ? new mongoose.Types.ObjectId(userId) 
+    : userId,
+    };
+    const post = await Post.create(postData);
+    const populatedPost = await Post.findById(post._id).populate("author", "displayname avatarUrl");
+    
+    return res.status(201).json(populatedPost);
   } catch (err) {
-    res.status(500).json({ message: "Помилка сервера", error: err.message });
+  console.error("❌ КРИТИЧНА ПОМИЛКА БЕКЕНДУ:", err);
+    return res.status(500).json({ message: "Помилка сервера", error: err.message });
   }
 }
 
