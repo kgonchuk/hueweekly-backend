@@ -11,12 +11,14 @@ router.post("/:postId/comments", authenticate, addComment);
 
 router.post("/", authenticate, upload.single("photo"), createPost);
 
-// Отримання всіх постів
 router.get("/", authenticate, async (req, res) => {
   try {
+    const totalDocsInDb = await Post.countDocuments();
+    console.log("📊 КІЛЬКІСТЬ ПОСТІВ У БАЗІ ДАНИХ:", totalDocsInDb);
     const posts = await Post.find()
-      .populate("author", "displayname avatarUrl")
-      .populate("comments.author", "displayname avatarUrl");
+  .sort({ createdAt: -1 }) 
+  .populate("author", "displayname avatarUrl")
+  .populate("comments.author", "displayname avatarUrl");
     res.status(200).json(posts);
   } catch (err) {
     res.status(500).json({ message: "Server error" });

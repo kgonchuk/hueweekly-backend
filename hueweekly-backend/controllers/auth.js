@@ -71,7 +71,7 @@ export async function register(req, res) {
 
 export async function login(req, res) {
   try {
-    const { email, password } = req.body;
+    const { email, password} = req.body;
     const user = await User.findOne({ email });             
     if (!user) {
       return res.status(400).json({ message: "Невірний email або пароль" });
@@ -89,6 +89,7 @@ export async function login(req, res) {
     id: user._id, 
     displayname: user.displayname, 
     email: user.email, 
+    avatarUrl: user.avatarUrl
   } 
 });
   } catch (err) {
@@ -115,9 +116,35 @@ export async function getCurrentUser(req, res) {
     res.status(200).json({ 
         username: user.username, 
         email: user.email, 
-        avatar: user.avatar
+        avatar: user.avatarUrl
     });
   } catch (err) {
     res.status(500).json({ message: "Помилка сервера" });
+  }
+}
+
+
+export async function updateAvatar(req, res) {
+  console.log("=== БЕКЕНД: req.user ===", req.user);
+  console.log("=== БЕКЕНД: req.file ===", req.file);
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "Фото не отримано від сховища Cloudinary" });
+    }
+    const avatarUrlFromCloudinary = req.file.path; 
+    const userId = req.user._id || req.user.id;
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { avatarUrl: avatarUrlFromCloudinary },
+     { returnDocument: 'after' }
+    );
+    return res.status(200).json({
+      message: "Аватар успішно оновлено",
+      avatarUrl: updatedUser.avatarUrl 
+    });
+
+  } catch (err) {
+    console.error("❌ ПОМИЛКА ОНОВЛЕННЯ АВАТАРА:", err);
+    return res.status(500).json({ message: "Помилка сервера", error: err.message });
   }
 }
